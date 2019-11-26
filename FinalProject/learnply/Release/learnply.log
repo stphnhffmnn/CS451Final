@@ -1,13 +1,44 @@
 ﻿  learnply.cpp
 C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(124,1): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(208): message : see declaration of 'fopen'
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(294,8): warning C4101: 'colorX': unreferenced local variable
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(284,15): warning C4101: 'i': unreferenced local variable
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(294,16): warning C4101: 'colorY': unreferenced local variable
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(285,10): warning C4101: 'mat_diffuse': unreferenced local variable
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): error C2678: binary '==': no operator found which takes a left-hand operand of type 'const _Ty' (or there is no acceptable conversion)
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): error C2678:         with
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): error C2678:         [
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): error C2678:             _Ty=Quad
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): error C2678:         ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\system_error(232,24): message : could be 'bool std::operator ==(const std::error_condition &,const std::error_condition &) noexcept'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\system_error(227,24): message : or       'bool std::operator ==(const std::error_condition &,const std::error_code &) noexcept'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\system_error(222,24): message : or       'bool std::operator ==(const std::error_code &,const std::error_condition &) noexcept'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\system_error(217,24): message : or       'bool std::operator ==(const std::error_code &,const std::error_code &) noexcept'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\exception(290,24): message : or       'bool std::operator ==(const std::exception_ptr &,std::nullptr_t) noexcept'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\exception(286,24): message : or       'bool std::operator ==(std::nullptr_t,const std::exception_ptr &) noexcept'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\exception(282,24): message : or       'bool std::operator ==(const std::exception_ptr &,const std::exception_ptr &) noexcept'
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\shared\guiddef.h(192,15): message : or       'bool operator ==(const GUID &,const GUID &)' [found using argument-dependent lookup]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): message : while trying to match the argument list '(const _Ty, const _Ty)'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): message :         with
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): message :         [
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): message :             _Ty=Quad
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478,1): message :         ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1477): message : while compiling class template member function 'auto std::list<Quad,std::allocator<_Ty>>::remove(const _Ty &)'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1477): message :         with
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1477): message :         [
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1477): message :             _Ty=Quad
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1477): message :         ]
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(104): message : see reference to class template instantiation 'std::list<Quad,std::allocator<_Ty>>' being compiled
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(104): message :         with
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(104): message :         [
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(104): message :             _Ty=Quad
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(104): message :         ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1489,1): error C2451: conditional expression of type 'void' is illegal
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1489,22): message : Expressions of type void cannot be converted to other types
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478): message : see reference to function template instantiation 'auto std::list<Quad,std::allocator<_Ty>>::remove_if<std::list<_Ty,std::allocator<_Ty>>::remove::<lambda_1f8d575e6e32dbddb938f1b4a98f1e21>>(_Pr1)' being compiled
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478): message :         with
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478): message :         [
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478): message :             _Ty=Quad,
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478): message :             _Pr1=std::list<Quad,std::allocator<Quad>>::remove::<lambda_1f8d575e6e32dbddb938f1b4a98f1e21>
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\include\list(1478): message :         ]
 C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(533,1): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(208): message : see declaration of 'fopen'
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(456,6): warning C4101: 'i': unreferenced local variable
 C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(563,1): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(208): message : see declaration of 'fopen'
 C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(748,1): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
@@ -20,4 +51,3 @@ C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1451,
 C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1452,50): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
 C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1486,26): warning C4305: '=': truncation from 'double' to 'GLfloat'
 C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1518,16): warning C4018: '<': signed/unsigned mismatch
-  learnply.vcxproj -> C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\.\Release\learnply.exe

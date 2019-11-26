@@ -68,7 +68,7 @@ double blendFourPoints(double x, double y, double x1, double y1, double x2, doub
 
 
 //function we need
-void LinearSubDivision(); //this takes all polys and reduces by one step in tessellation
+//void LinearSubDivision(); //this takes all polys and reduces by one step in tessellation
 void MouseToMapRaycast(); //take mouse position and select which polygon it is hovering over. Make that poly a color to show it
 void UserSelectedSubdivision(); // takes the selected poly with the mouse and subdivides
 void UserSelectedReduction(); //Takes user selected poly and undoes current level of division
@@ -212,7 +212,8 @@ void LinearSubDivision()
 			CustomQuads.push_front(*newQuads[i]);
 
 		}
-		CustomQuads.erase(it);
+		//we need this but it stopped working after vs update
+		//CustomQuads.erase(it);
 
 	}
 }
@@ -309,7 +310,7 @@ void display_shape(GLenum mode, Polyhedron* this_poly)
 			Vertex* temp_v = q.verts[j];
 			glNormal3d(q.normal.entry[0], q.normal.entry[1], q.normal.entry[2]);
 			glTexCoord2f(temp_v->x / 25 + 0.5, temp_v->y / 25 + 0.5);
-
+			//estimate where to get pixel height 
 			int pixX = (int)((temp_v->x + 10) * 25);
 			int pixY = (int)((temp_v->y + 10) * 25);
 			//glColor3f(0.0, 0.0, 0.0);
@@ -317,7 +318,7 @@ void display_shape(GLenum mode, Polyhedron* this_poly)
 		}
 		glEnd();
 	}
-
+	//get texture data
 	glBindTexture(GL_TEXTURE_2D, texture);
 	GLubyte* pixels = new GLubyte[512 * 512 * 4];
 
