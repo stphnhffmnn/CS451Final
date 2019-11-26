@@ -61,7 +61,19 @@ void motion(int x, int y);
 void display(void);
 void mouse(int button, int state, int x, int y);
 void display_shape(GLenum mode, Polyhedron *poly);
-void LinearSubDivision();
+void set_view(GLenum mode, Polyhedron* poly);
+void set_scene(GLenum mode, Polyhedron* poly);
+int processHits(GLint hits, GLuint buffer[]);
+double blendFourPoints(double x, double y, double x1, double y1, double x2, double y2, double f11, double f21, double f12, double f22);
+
+
+//function we need
+void LinearSubDivision(); //this takes all polys and reduces by one step in tessellation
+void MouseToMapRaycast(); //take mouse position and select which polygon it is hovering over. Make that poly a color to show it
+void UserSelectedSubdivision(); // takes the selected poly with the mouse and subdivides
+void UserSelectedReduction(); //Takes user selected poly and undoes current level of division
+void AutoSubDivision(); //automatically sub divide map using height differences between points
+
 char files[22][45] = { "../quadmesh_2D/2x_square_plus_y_square.ply",
 					  "../quadmesh_2D/problem_1_function.ply",
 					  "../quadmesh_2D/sin_function.ply",
@@ -92,9 +104,13 @@ GLuint texture;
 list<Quad> CustomQuads;
 double Pixels[513][513];
 
+
+
 /******************************************************************************
-Main program.
+New Functions
 ******************************************************************************/
+
+//loads height maps
 GLuint LoadTexture(const char * filename)
 {
 
@@ -144,6 +160,398 @@ GLuint LoadTexture(const char * filename)
 	
 }
 
+bool quadsCreated = false; //used to build list during init of program.
+
+//create list of quads. Allows us to push, pop, and delete indexes dynamically
+void CreateCustomQuadList()
+{
+	for (int i = 0; i < poly->nquads; i++) {
+
+		Quad* temp_q = poly->qlist[i];
+		for (int k = 0; k < 4; k++)
+		{
+			Vertex* v = temp_q->verts[k];
+			v->z = v->f_x * 8;
+		}
+		CustomQuads.push_front(*temp_q);
+
+	}
+}
+
+//subdivides whole map by one step
+void LinearSubDivision()
+{
+
+	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+	{
+
+		Quad temp_q = *it;
+		Vertex* v0 = temp_q.verts[0];
+		Vertex* v1 = temp_q.verts[1];
+		Vertex* v2 = temp_q.verts[2];
+		Vertex* v3 = temp_q.verts[3];
+
+		Vertex* v[4] = { v0,v1,v2,v3 };
+		double midX = (v0->x + v2->x) / 2;
+		double midY = (v0->y + v2->y) / 2;
+		double midZ = (v0->z + v2->y + v1->z + v3->z) / 4;
+
+		Quad* newQuads[4];
+		for (int i = 0; i < 4; i++)
+		{
+			newQuads[i] = new Quad();
+			newQuads[i]->nverts = 4;
+			double z = blendFourPoints(v[i]->x, v[i]->y, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
+			newQuads[i]->verts[0] = new Vertex(v[i]->x, v[i]->y, z);
+			z = blendFourPoints(midX, v[i]->y, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
+			newQuads[i]->verts[1] = new Vertex(midX, v[i]->y, z);
+			z = blendFourPoints(midX, midY, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
+			newQuads[i]->verts[2] = new Vertex(midX, midY, z);
+			z = blendFourPoints(v[i]->x, midY, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
+			newQuads[i]->verts[3] = new Vertex(v[i]->x, midY, z);
+			CustomQuads.push_front(*newQuads[i]);
+
+		}
+		CustomQuads.erase(it);
+
+	}
+}
+
+//TODO FUNCTIONS
+//take mouse position and select which polygon it is hovering over. Make that poly a color to show it
+void MouseToMapRaycast()
+{
+	//we need to use an opengl ray cast method to take the mouse position in the camera and cast it onto the model.
+
+	//From there we can do a for loop through the CustomQuads list, using a list iterator, to highlight the polygon the mouse is currently over.
+
+	//We can store this polygon data in an global variable to be accessed in the below functions.
+}
+
+// takes the selected poly with the mouse and subdivides
+void UserSelectedSubdivision()
+{
+	//We will grab the polygon data highlighted by the user.
+
+	//Use this data to subdivide the polygon
+
+	//add the new polygons to the CustomQuad list
+
+	//Delete the original polygon from the list
+
+	//Make a list of the edge polygons
+
+	//Create a DSS out of the edge polygons
+
+	//remove each origional edge polygon from customquad list, and add the new ones.
+}
+
+//Takes user selected poly and undoes current level of division
+//this one will be trick. I suggest we save it for the end
+void UserSelectedReduction()
+{
+	//Grab the data from the current selected polygon
+
+	//Option one
+		//Find 3 polygons to it with the same subdivision level belonging to the original division poly
+		//Reduce the 4 into one
+		//Revualate DSS surrounding the new polygon.
+	//Option two
+		//Store the reduction state of all polygons for each tessellation lvl.
+		//Simply using this data to create the new polygon
+		//add new polygon and delete the old one and all polygons within the new new polygon.
+		//Revualate DSS
+}
+
+//automatically sub divide map using height differences between points
+void AutoSubDivision()
+{
+	//for each polygon, we can take the height difference between each point.
+	//if the height is great than some value X, we can subdivide.
+		//if the height is still greater for the new values, we will repeat.
+
+	//this function can be a recursive method or implemented using a list with while(!empty) were we just keeping adding new polys when height is greater, and removing when not.
+}
+
+
+void display_shape(GLenum mode, Polyhedron* this_poly)
+{
+	if (quadsCreated == false) //dynamic list of quads
+	{
+		CreateCustomQuadList();
+		quadsCreated = true;
+	}
+	unsigned int i, j;
+	GLfloat mat_diffuse[4];
+
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(1., 1.);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glShadeModel(GL_SMOOTH);
+	float colorX, colorY;
+	double L = (poly->radius * 2) / 30;
+
+	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+	{
+		Quad q = *it;
+		//glDisable(GL_LIGHTING);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glBegin(GL_POLYGON);
+
+		for (j = 0; j < 4; j++) {
+
+			Vertex* temp_v = q.verts[j];
+			glNormal3d(q.normal.entry[0], q.normal.entry[1], q.normal.entry[2]);
+			glTexCoord2f(temp_v->x / 25 + 0.5, temp_v->y / 25 + 0.5);
+
+			int pixX = (int)((temp_v->x + 10) * 25);
+			int pixY = (int)((temp_v->y + 10) * 25);
+			//glColor3f(0.0, 0.0, 0.0);
+			glVertex3d(temp_v->x, temp_v->y, Pixels[pixX][pixY] / 25);
+		}
+		glEnd();
+	}
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+	GLubyte* pixels = new GLubyte[512 * 512 * 4];
+
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+	size_t r, g, b, a; // or GLubyte r, g, b, a;
+
+	size_t  x = 0;
+	size_t  y = 0; // line and column of the pixel
+	GLubyte  gray;
+	size_t elmes_per_line, row, col;
+	for (int i = 0; i < 512; i++)
+	{
+		for (int j = 0; j < 512; j++)
+		{
+			elmes_per_line = 512 * 4; // elements per line = 256 * "RGBA"
+
+			row = y * elmes_per_line;
+			col = x * 4;
+
+			r = pixels[row + col];
+			g = pixels[row + col + 1];
+			b = pixels[row + col + 2];
+			a = pixels[row + col + 3];
+
+			gray = (GLubyte)(r * 0.2126 + g * 0.7152 + b * 0.0722);
+			Pixels[x][y] = gray;
+
+
+			//fprintf(stderr, "%d\n", gray);
+			x++;
+		}
+		y++;
+		x = 0;
+	}
+	free(pixels);
+
+}
+
+//helper function. Linearly blends 4 points. We shouldn't needed it if data is higher resolution than poly count. It should be always
+double blendFourPoints(double x, double y, double x1, double y1, double x2, double y2, double f11, double f21, double f12, double f22)
+{
+	double af = (x2 - x) / (x2 - x1) * (y2 - y) / (y2 - y1) * f11;
+	af += (x - x1) / (x2 - x1) * (y2 - y) / (y2 - y1) * f21;
+	af += (x2 - x) / (x2 - x1) * (y - y1) / (y2 - y1) * f12;
+	af += (x - x1) / (x2 - x1) * (y - y1) / (y2 - y1) * f22;
+	return af;
+}
+
+//We will need to activity track the mouse location here
+void mouse(int button, int state, int x, int y) {
+
+	int key = glutGetModifiers();
+
+	if (button == GLUT_LEFT_BUTTON || button == GLUT_RIGHT_BUTTON) {
+		switch (mouse_mode) {
+		case -2:  // no action
+			if (state == GLUT_DOWN) {
+				float xsize = (float)win_width;
+				float ysize = (float)win_height;
+
+				float s = (2.0 * x - win_width) / win_width;
+				float t = (2.0 * (win_height - y) - win_height) / win_height;
+
+				s_old = s;
+				t_old = t;
+
+				mouse_button = button;
+				last_x = x;
+				last_y = y;
+
+				/*rotate*/
+				if (button == GLUT_RIGHT_BUTTON)
+				{
+					mouse_mode = -1;
+				}
+
+				/*translate*/
+				if (button == GLUT_LEFT_BUTTON)
+				{
+					mouse_mode = 3;
+				}
+
+				if (key == GLUT_ACTIVE_SHIFT)
+				{
+					mouse_mode = 2;
+				}
+
+			}
+			break;
+
+		default:
+			if (state == GLUT_UP) {
+				button = -1;
+				mouse_mode = -2;
+			}
+			break;
+		}
+	}
+	else if (button == GLUT_MIDDLE_BUTTON) {
+		if (state == GLUT_DOWN) {  // build up the selection feedback mode
+
+			GLuint selectBuf[win_width];
+			GLint hits;
+			GLint viewport[4];
+
+			glGetIntegerv(GL_VIEWPORT, viewport);
+
+			glSelectBuffer(win_width, selectBuf);
+			(void)glRenderMode(GL_SELECT);
+
+			glInitNames();
+			glPushName(0);
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			/*  create 5x5 pixel picking region near cursor location */
+			gluPickMatrix((GLdouble)x, (GLdouble)(viewport[3] - y), 1.0, 1.0, viewport);
+
+			set_view(GL_SELECT, poly);
+			glPushMatrix();
+			set_scene(GL_SELECT, poly);
+			display_shape(GL_SELECT, poly);
+			glPopMatrix();
+			glFlush();
+
+			hits = glRenderMode(GL_RENDER);
+			poly->seed = processHits(hits, selectBuf);
+			display();
+		}
+	}
+}
+
+void keyboard(unsigned char key, int x, int y) {
+	int i;
+
+	/* set escape key to exit */
+	switch (key) {
+	case 27:
+		poly->finalize();  // finalize_everything
+		exit(0);
+		break;
+
+	case '0':
+		LinearSubDivision();
+		display_mode = 0;
+		display();
+		break;
+
+	case '1':
+		display_mode = 1;
+		display();
+		break;
+
+	case '2':
+		display_mode = 2;
+		display();
+		break;
+
+	case '3':
+		display_mode = 3;
+		display();
+		break;
+
+	case '4':
+		display_mode = 4;
+		display();
+		break;
+
+	case '5':
+		display_mode = 5;
+		display();
+		break;
+
+	case '6':
+		display_mode = 6;
+		display();
+		break;
+
+	case '7':
+		display_mode = 7;
+		display();
+		break;
+
+	case '8':
+		display_mode = 8;
+		display();
+		break;
+
+	case '9':
+		display_mode = 9;
+		display();
+		break;
+	case 'f':
+		useGFunction = false;
+		display();
+		break;
+	case 'g':
+		useGFunction = true;
+		display();
+		break;
+	case 32: //space, load file
+		if (fileIndex == 11)
+		{
+			fileIndex = 0;
+		}
+		else {
+			fileIndex++;
+		}
+
+		FILE* this_file;
+		this_file = fopen(files[fileIndex], "r"); //load ply file
+		poly = new Polyhedron(this_file);
+		fclose(this_file);
+		mat_ident(rotmat);
+
+		poly->initialize(); // initialize everything
+		poly->calc_bounding_sphere(); //calculate the coordinate
+		poly->calc_face_normals_and_area(); //calculate the normals for the face
+		poly->average_normals(); //calculate the normals for vertices
+		poly->s_minmax();//calculate the min and max of scalar
+		poly->g_minmax();//calculate the min and max of scalar
+		display();
+		break;
+	}
+}
+
+
+
+
+/******************************************************************************
+Main program.
+******************************************************************************/
 int main(int argc, char *argv[])
 {
 	char *progname;
@@ -189,6 +597,7 @@ int main(int argc, char *argv[])
 /******************************************************************************
 Read in a polyhedron from a file.
 ******************************************************************************/
+#pragma region Not Needed
 
 Polyhedron::Polyhedron(FILE *file)
 {
@@ -1000,106 +1409,11 @@ void init(void) {
 		glFrontFace(GL_CCW);
 }
 
-
-/******************************************************************************
-Process a keyboard action.  In particular, exit the program when an
-"escape" is pressed in the window.
-******************************************************************************/
 #pragma endregion
-void keyboard(unsigned char key, int x, int y) {
-	int i;
 
-	/* set escape key to exit */
-	switch (key) {
-	case 27:
-		poly->finalize();  // finalize_everything
-		exit(0);
-		break;
 
-	case '0':
-		LinearSubDivision();
-		display_mode = 0;
-		display();
-		break;
 
-	case '1':
-		display_mode = 1;
-		display();
-		break;
-
-	case '2':
-		display_mode = 2;
-		display();
-		break;
-
-	case '3':
-		display_mode = 3;
-		display();
-		break;
-
-	case '4':
-		display_mode = 4;
-		display();
-		break;
-
-	case '5':
-		display_mode = 5;
-		display();
-		break;
-
-	case '6':
-		display_mode = 6;
-		display();
-		break;
-
-	case '7':
-		display_mode = 7;
-		display();
-		break;
-
-	case '8':
-		display_mode = 8;
-		display();
-		break;
-
-	case '9':
-		display_mode = 9;
-		display();
-		break;
-	case 'f':
-		useGFunction = false;
-		display();
-		break;
-	case 'g':
-		useGFunction = true;
-		display();
-		break;
-	case 32: //space, load file
-		if (fileIndex == 11)
-		{
-			fileIndex = 0;
-		}
-		else {
-			fileIndex++;
-		}
-
-		FILE *this_file;
-		this_file = fopen(files[fileIndex], "r"); //load ply file
-		poly = new Polyhedron(this_file);
-		fclose(this_file);
-		mat_ident(rotmat);
-
-		poly->initialize(); // initialize everything
-		poly->calc_bounding_sphere(); //calculate the coordinate
-		poly->calc_face_normals_and_area(); //calculate the normals for the face
-		poly->average_normals(); //calculate the normals for vertices
-		poly->s_minmax();//calculate the min and max of scalar
-		poly->g_minmax();//calculate the min and max of scalar
-		display();
-		break;
-	}
-}
-#pragma region
+#pragma region not needed
 /******************************************************************************
 define the number of vertices (no change)
 ******************************************************************************/
@@ -1277,279 +1591,10 @@ void motion(int x, int y) {
 
 	}
 }
-
-/******************************************************************************
-Mouse function (no change)
-******************************************************************************/
-void mouse(int button, int state, int x, int y) {
-
-	int key = glutGetModifiers();
-
-	if (button == GLUT_LEFT_BUTTON || button == GLUT_RIGHT_BUTTON) {
-		switch (mouse_mode) {
-		case -2:  // no action
-			if (state == GLUT_DOWN) {
-				float xsize = (float)win_width;
-				float ysize = (float)win_height;
-
-				float s = (2.0 * x - win_width) / win_width;
-				float t = (2.0 * (win_height - y) - win_height) / win_height;
-
-				s_old = s;
-				t_old = t;
-
-				mouse_button = button;
-				last_x = x;
-				last_y = y;
-
-				/*rotate*/
-				if (button == GLUT_RIGHT_BUTTON)
-				{
-					mouse_mode = -1;
-				}
-
-				/*translate*/
-				if (button == GLUT_LEFT_BUTTON)
-				{
-					mouse_mode = 3;
-				}
-
-				if (key == GLUT_ACTIVE_SHIFT)
-				{
-					mouse_mode = 2;
-				}
-
-			}
-			break;
-
-		default:
-			if (state == GLUT_UP) {
-				button = -1;
-				mouse_mode = -2;
-			}
-			break;
-		}
-	}
-	else if (button == GLUT_MIDDLE_BUTTON) {
-		if (state == GLUT_DOWN) {  // build up the selection feedback mode
-
-			GLuint selectBuf[win_width];
-			GLint hits;
-			GLint viewport[4];
-
-			glGetIntegerv(GL_VIEWPORT, viewport);
-
-			glSelectBuffer(win_width, selectBuf);
-			(void)glRenderMode(GL_SELECT);
-
-			glInitNames();
-			glPushName(0);
-
-			glMatrixMode(GL_PROJECTION);
-			glPushMatrix();
-			glLoadIdentity();
-			/*  create 5x5 pixel picking region near cursor location */
-			gluPickMatrix((GLdouble)x, (GLdouble)(viewport[3] - y), 1.0, 1.0, viewport);
-
-			set_view(GL_SELECT, poly);
-			glPushMatrix();
-			set_scene(GL_SELECT, poly);
-			display_shape(GL_SELECT, poly);
-			glPopMatrix();
-			glFlush();
-
-			hits = glRenderMode(GL_RENDER);
-			poly->seed = processHits(hits, selectBuf);
-			display();
-		}
-	}
-}
 #pragma endregion
-/******************************************************************************
-Different visualizations of case
-******************************************************************************/
-double blendFourPoints(double x, double y, double x1, double y1, double x2, double y2, double f11, double f21, double f12, double f22)
-{
-	double af = (x2 - x) / (x2 - x1)*(y2 - y) / (y2 - y1)*f11;
-	af += (x - x1) / (x2 - x1)*(y2 - y) / (y2 - y1)*f21;
-	af += (x2 - x) / (x2 - x1)*(y - y1) / (y2 - y1)*f12;
-	af += (x - x1) / (x2 - x1)*(y - y1) / (y2 - y1)*f22;
-	return af;
-}
-
-bool quadsCreated = false;
-
-void CreateCustomQuadList()
-{
-	for (int i = 0; i < poly->nquads; i++) {
-
-		Quad *temp_q = poly->qlist[i];
-		for (int k = 0; k < 4; k++)
-		{
-			Vertex *v = temp_q->verts[k];
-			v->z = v->f_x*8;
-		}
-		CustomQuads.push_front(*temp_q);
-			
-	}
-}
-void LinearSubMultiplication()
-{
-	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
-	{
-
-		Quad temp_q = *it;
-		Vertex *v0 = temp_q.verts[0];
-		Vertex *v1 = temp_q.verts[1];
-		Vertex *v2 = temp_q.verts[2];
-		Vertex *v3 = temp_q.verts[3];
-
-		Vertex *v[4] = { v0,v1,v2,v3 };
-		double midX = (v0->x + v2->x) / 2;
-		double midY = (v0->y + v2->y) / 2;
 
 
-		Quad *newQuads[4];
-		for (int i = 0; i < 4; i++)
-		{
-			//double dx0 = blendFourPoints(x0, y0,       v0->x, v0->y, v2->x, v2->y, v0->vx, v1->vx, v3->vx, v2->vx);
-			
-			newQuads[i] = new Quad();
-			newQuads[i]->nverts = 4;
-			newQuads[i]->verts[0] = v[i];
-			double z = blendFourPoints(midX, v[i]->y, v[i]->x, v[i]->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
-			newQuads[i]->verts[1] = new Vertex(midX, v[i]->y, z);
-			z = blendFourPoints(midX, midY, v[i]->x, v[i]->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
-			newQuads[i]->verts[2] = new Vertex(midX, midY, z);
-			z = blendFourPoints(v[i]->x, midY, v[i]->x, v[i]->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
-			newQuads[i]->verts[3] = new Vertex(v[i]->x, midY, z);
-			CustomQuads.push_front(*newQuads[i]);
 
-		}
-		CustomQuads.erase(it);
-
-	}
-}
-void LinearSubDivision()
-{
-
-	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
-	{
-
-		Quad temp_q = *it;
-		Vertex *v0 = temp_q.verts[0];
-		Vertex *v1 = temp_q.verts[1];
-		Vertex *v2 = temp_q.verts[2];
-		Vertex *v3 = temp_q.verts[3];
-
-		Vertex *v[4] = { v0,v1,v2,v3 };
-		double midX = (v0->x + v2->x) / 2;
-		double midY = (v0->y + v2->y) / 2;
-		double midZ = (v0->z + v2->y + v1->z + v3->z) / 4;
-
-		Quad *newQuads[4];
-		for (int i = 0; i < 4; i++)
-		{
-			newQuads[i] = new Quad();
-			newQuads[i]->nverts = 4;
-			double z = blendFourPoints(v[i]->x, v[i]->y, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
-			newQuads[i]->verts[0] = new Vertex(v[i]->x, v[i]->y, z);
-			z = blendFourPoints(midX, v[i]->y, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
-			newQuads[i]->verts[1] = new Vertex(midX, v[i]->y, z);
-			z = blendFourPoints(midX, midY, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
-			newQuads[i]->verts[2] = new Vertex(midX, midY, z);
-			z = blendFourPoints(v[i]->x, midY, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
-			newQuads[i]->verts[3] = new Vertex(v[i]->x, midY, z);
-			CustomQuads.push_front(*newQuads[i]);
-
-		}
-		CustomQuads.erase(it);
-
-	}
-}
-
-void display_shape(GLenum mode, Polyhedron *this_poly)
-{
-	if (quadsCreated == false) //dynamic list of quads
-	{
-		CreateCustomQuadList();
-		quadsCreated = true;
-	}
-	unsigned int i, j;
-	GLfloat mat_diffuse[4];
-
-	glEnable(GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset(1., 1.);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glShadeModel(GL_SMOOTH);
-	float colorX, colorY;
-	double L = (poly->radius * 2) / 30;
-
-	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
-	{
-		Quad q = *it;
-		//glDisable(GL_LIGHTING);
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glBegin(GL_POLYGON);
-	
-		for (j = 0; j < 4; j++) {
-
-			Vertex *temp_v = q.verts[j];
-			glNormal3d(q.normal.entry[0], q.normal.entry[1], q.normal.entry[2]);
-			glTexCoord2f(temp_v->x/25+0.5, temp_v->y/25+0.5);
-
-			int pixX = (int)((temp_v->x + 10) * 25);
-			int pixY = (int)((temp_v->y + 10) * 25);
-			//glColor3f(0.0, 0.0, 0.0);
-			glVertex3d(temp_v->x, temp_v->y, Pixels[pixX][pixY]/25);
-		}
-		glEnd();
-	}
-
-	glBindTexture(GL_TEXTURE_2D, texture);
-	GLubyte* pixels = new GLubyte[512 * 512 * 4];
-
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-	size_t r, g, b, a; // or GLubyte r, g, b, a;
-
-	size_t  x = 0;
-	size_t  y = 0; // line and column of the pixel
-	GLubyte  gray;
-	size_t elmes_per_line, row, col;
-	for (int i = 0; i < 512; i++)
-	{
-		for (int j = 0; j < 512; j++)
-		{
-			  elmes_per_line = 512 * 4; // elements per line = 256 * "RGBA"
-
-			  row = y * elmes_per_line;
-			  col = x * 4;
-
-			r = pixels[row + col];
-			g = pixels[row + col + 1];
-			b = pixels[row + col + 2];
-			a = pixels[row + col + 3];
-
-			gray = (GLubyte)(r*0.2126 + g * 0.7152 + b * 0.0722);
-			Pixels[x][y] = gray;
-		
-			
-			//fprintf(stderr, "%d\n", gray);
-			x++;
-		}
-		y++;
-		x = 0;
-	}
-	free(pixels);
-	
-}
 
 #pragma	region
 /******************************************************************************
