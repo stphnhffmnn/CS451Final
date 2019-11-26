@@ -1,0 +1,19 @@
+﻿  learnply.cpp
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(73): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.15063.0\ucrt\stdio.h(207): note: see declaration of 'fopen'
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(254): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.15063.0\ucrt\stdio.h(1772): note: see declaration of 'sprintf'
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(804): warning C4018: '<': signed/unsigned mismatch
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(855): warning C4018: '<': signed/unsigned mismatch
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(880): warning C4018: '<': signed/unsigned mismatch
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(889): warning C4018: '<': signed/unsigned mismatch
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(925): warning C4101: 'i': unreferenced local variable
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1022): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1022): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1023): warning C4838: conversion from 'double' to 'GLfloat' requires a narrowing conversion
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1023): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1057): warning C4305: '=': truncation from 'double' to 'GLfloat'
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1089): warning C4018: '<': signed/unsigned mismatch
+c:\users\fengzi\box\cs553\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1271): warning C4018: '<': signed/unsigned mismatch
+icVector.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:ICF' specification
+  learnply.vcxproj -> C:\Users\fengzi\Box\cs553\learnply7.0_comments_project1_min_max\learnply\.\Debug\learnply.exe

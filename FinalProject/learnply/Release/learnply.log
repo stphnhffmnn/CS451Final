@@ -1,0 +1,23 @@
+﻿  learnply.cpp
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(108): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: see declaration of 'fopen'
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(155): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: see declaration of 'fopen'
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(339): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(1774): note: see declaration of 'sprintf'
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(889): warning C4018: '<': signed/unsigned mismatch
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(940): warning C4018: '<': signed/unsigned mismatch
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(965): warning C4018: '<': signed/unsigned mismatch
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(974): warning C4018: '<': signed/unsigned mismatch
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1087): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: see declaration of 'fopen'
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1010): warning C4101: 'i': unreferenced local variable
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1137): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1138): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1172): warning C4305: '=': truncation from 'double' to 'GLfloat'
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1204): warning C4018: '<': signed/unsigned mismatch
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1488): warning C4101: 'colorX': unreferenced local variable
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1478): warning C4101: 'i': unreferenced local variable
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1488): warning C4101: 'colorY': unreferenced local variable
+c:\users\stephen\desktop\visualization\learnply7.0_comments_project1_min_max\learnply\learnply.cpp(1479): warning C4101: 'mat_diffuse': unreferenced local variable
+  learnply.vcxproj -> C:\Users\stephen\Desktop\Visualization\learnply7.0_comments_project1_min_max\learnply\.\Release\learnply.exe
