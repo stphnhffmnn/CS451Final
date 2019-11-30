@@ -73,7 +73,8 @@ void MouseToMapRaycast(); //take mouse position and select which polygon it is h
 void UserSelectedSubdivision(); // takes the selected poly with the mouse and subdivides
 void UserSelectedReduction(); //Takes user selected poly and undoes current level of division
 void AutoSubDivision(); //automatically sub divide map using height differences between points
-
+void EdgeStitching();
+void OrderVertexClockWise(Quad *q);
 char files[22][45] = { "../quadmesh_2D/2x_square_plus_y_square.ply",
 					  "../quadmesh_2D/problem_1_function.ply",
 					  "../quadmesh_2D/sin_function.ply",
@@ -161,17 +162,63 @@ GLuint LoadTexture(const char * filename)
 }
 
 bool quadsCreated = false; //used to build list during init of program.
-
+int errorFalloffX = 15;
 //create list of quads. Allows us to push, pop, and delete indexes dynamically
 void CreateCustomQuadList()
 {
+	//set up mapdata array pixel value
+	//get texture data
+	glBindTexture(GL_TEXTURE_2D, texture);
+	GLubyte* pixels = new GLubyte[512 * 512 * 4];
+
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+	size_t r, g, b, a; // or GLubyte r, g, b, a;
+
+	size_t  x = 0;
+	size_t  y = 0; // line and column of the pixel
+	GLubyte  gray;
+	size_t elmes_per_line, row, col;
+	for (int i = 0; i < 512; i++)
+	{
+		for (int j = 0; j < 512; j++)
+		{
+			elmes_per_line = 512 * 4; // elements per line = 256 * "RGBA"
+
+			row = y * elmes_per_line;
+			col = x * 4;
+
+			r = pixels[row + col];
+			g = pixels[row + col + 1];
+			b = pixels[row + col + 2];
+			a = pixels[row + col + 3];
+
+			gray = (GLubyte)(r * 0.2126 + g * 0.7152 + b * 0.0722);
+			Pixels[x][y] = gray;
+
+
+			//fprintf(stderr, "%d\n", gray);
+			x++;
+		}
+		y++;
+		x = 0;
+	}
+	free(pixels);
+
+	//assign map y values
 	for (int i = 0; i < poly->nquads; i++) {
 
 		Quad* temp_q = poly->qlist[i];
 		for (int k = 0; k < 4; k++)
 		{
 			Vertex* v = temp_q->verts[k];
-			v->z = v->f_x * 8;
+			int pixX = (int)((v->x + 10) * 25);
+			if (pixX <= errorFalloffX)
+			{
+				pixX += errorFalloffX;
+			}
+			int pixY = (int)((v->y + 10) * 25);
+			v->z = Pixels[pixX][pixY] / 25;
 		}
 		CustomQuads.push_front(*temp_q);
 
@@ -181,7 +228,7 @@ void CreateCustomQuadList()
 //subdivides whole map by one step
 void LinearSubDivision()
 {
-
+	list<Quad> newList;
 	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
 	{
 
@@ -209,13 +256,12 @@ void LinearSubDivision()
 			newQuads[i]->verts[2] = new Vertex(midX, midY, z);
 			z = blendFourPoints(v[i]->x, midY, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
 			newQuads[i]->verts[3] = new Vertex(v[i]->x, midY, z);
-			CustomQuads.push_front(*newQuads[i]);
+			newList.push_front(*newQuads[i]);
 
 		}
-		//we need this but it stopped working after vs update
-		//CustomQuads.erase(it);
-
 	}
+	CustomQuads.clear();
+	CustomQuads = newList;
 }
 
 //TODO FUNCTIONS
@@ -272,11 +318,302 @@ void AutoSubDivision()
 		//if the height is still greater for the new values, we will repeat.
 
 	//this function can be a recursive method or implemented using a list with while(!empty) were we just keeping adding new polys when height is greater, and removing when not.
+
+	list<Quad> newList;
+	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+	{
+
+		Quad temp_q = *it;
+		Vertex* v0 = temp_q.verts[0];
+		Vertex* v1 = temp_q.verts[1];
+		Vertex* v2 = temp_q.verts[2];
+		Vertex* v3 = temp_q.verts[3];
+		Vertex* v[4] = { v0,v1,v2,v3 };
+
+		double midX = (v0->x + v2->x) / 2;
+		double midY = (v0->y + v2->y) / 2;
+		int pixX = (int)((midX + 10) * 25);
+		int pixY = (int)((midY + 10) * 25);
+		double midZ = Pixels[pixX][pixY] / 25;
+		double distanceOne = sqrt(pow(v0->x - v1->x, 2) + pow(v0->y - v1->y, 2) + pow(v0->z - v1->z, 2));
+		double distanceTwo = sqrt(pow(v1->x - v2->x, 2) + pow(v1->y - v2->y, 2) + pow(v1->z - v2->z, 2));
+		double distanceThree = sqrt(pow(v2->x - v3->x, 2) + pow(v2->y - v3->y, 2) + pow(v2->z - v3->z, 2));
+		double distanceFour = sqrt(pow(v3->x - v0->x, 2) + pow(v3->y - v0->y, 2) + pow(v3->z - v0->z, 2));
+
+		float maxDistance = 0.5f; // height var, determines if we sub
+
+		if (distanceOne > maxDistance || distanceTwo > maxDistance || distanceThree> maxDistance || distanceFour > maxDistance)
+		{
+			Quad* newQuads[4];
+			for (int i = 0; i < 4; i++)
+			{
+				newQuads[i] = new Quad();
+				newQuads[i]->nverts = 4;
+				//this needs to be top right vertex
+				pixX = (int)((max(v[i]->x, midX)+10) * 25);
+				//for zero data issue
+				if (pixX <= errorFalloffX)
+				{
+					pixX += errorFalloffX;
+				}
+				pixY = (int)((max(v[i]->y, midY)+10) * 25);
+				midZ = Pixels[pixX][pixY] / 25;
+				newQuads[i]->verts[0] = new Vertex(max(v[i]->x, midX), max(v[i]->y, midY), midZ);
+				//top left
+				pixX = (int)((min(v[i]->x, midX)+10) * 25);
+				//for zero data issue
+				if (pixX <= errorFalloffX)
+				{
+					pixX += errorFalloffX;
+				}
+				pixY = (int)((max(v[i]->y, midY)+10) * 25);
+				midZ = Pixels[pixX][pixY] / 25;
+				newQuads[i]->verts[1] = new Vertex(min(v[i]->x, midX), max(v[i]->y, midY), midZ);
+				//buttom left
+				pixX = (int)((min(v[i]->x, midX)+10) * 25);
+				//for zero data issue
+				if (pixX <= errorFalloffX)
+				{
+					pixX += errorFalloffX;
+				}
+				pixY = (int)((min(v[i]->y, midY)+10) * 25);
+				midZ = Pixels[pixX][pixY] / 25;
+				newQuads[i]->verts[2] = new Vertex(min(v[i]->x, midX), min(v[i]->y, midY), midZ);
+				//bottton right
+				pixX = (int)((max(v[i]->x, midX)+10) * 25);
+				//for zero data issue
+				if (pixX <= errorFalloffX)
+				{
+					pixX += errorFalloffX;
+				}
+				pixY = (int)((min(v[i]->y, midY)+10) * 25);
+				midZ = Pixels[pixX][pixY] / 25;
+				newQuads[i]->verts[3] = new Vertex(max(v[i]->x, midX), min(v[i]->y, midY), midZ);
+				//OrderVertexClockWise(newQuads[i]);
+				newList.push_front(*newQuads[i]);
+
+			}
+		}
+		else // push non subdivided poly
+		{
+			newList.push_front(temp_q);
+		}
+
+	
+	}
+	CustomQuads.clear();
+	CustomQuads = newList;
+	EdgeStitching();
 }
 
+void EdgeStitching()
+{
+	list<Quad> newList;
+	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+	{
+		Quad temp_q = *it;
+		Quad edge0Edit;
+		Quad edge1Edit;
+		Quad edge2Edit;
+		Quad edge3Edit;
+		Vertex* v0 = temp_q.verts[0]; 
+		Vertex* v1 = temp_q.verts[1]; 
+		Vertex* v2 = temp_q.verts[2];
+		Vertex* v3 = temp_q.verts[3];
+		Vertex* v[4] = { v0,v1,v2,v3 };
+		
+		bool v0EdgeFound = false; //v0 v1 --> new v3 v2  top edge to bottom
+		bool v1EdgeFound = false; //v1 v2 --> new v3 v0  left to right
+		bool v2EdgeFound = false; //v2 v3 --> new v0 v1  buttom to top
+		bool v3EdgeFound = false; //v3 v0 --> new v1 v2  right to left
+
+		//check if each edge has a matching vertex in another polygon.
+		for (list<Quad>::iterator it2 = CustomQuads.begin(); it2 != CustomQuads.end(); it2++)
+		{
+			Quad temp_q2 = *it2;
+			if (it != it2)
+			{
+
+				
+				Vertex* v0n = temp_q2.verts[0];
+				Vertex* v1n = temp_q2.verts[1];
+				Vertex* v2n = temp_q2.verts[2];
+				Vertex* v3n = temp_q2.verts[3];
+				//check if top edge max x y corner right
+				if (v0->x == v3n->x && v0->y == v3n->y) //we have found a common edge vertex for top edge
+				{
+					if (v1->x == v2n->x && v1->y == v2n->y)
+					{
+				
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v1->x > v2n->x)
+						{
+							v1->z = (v2n->z + v3n->z)*(v0->x + 2);
+							
+							//v1->z = 10;
+						}
+					}
+				}
+				if (v1->x == v2n->x && v1->y == v2n->y) //we have found a common edge vertex for top edge
+				{
+					if (v0->x == v3n->x && v0->y == v3n->y)
+					{
+
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v0->x < v3n->x)
+						{
+							v0->z = (v2n->z + v3n->z) / 2;
+
+							//v1->z = 10;
+						}
+					}
+				}
+				//buttom check edge corner left
+				if (v2->x == v1n->x && v2->y == v1n->y) //we have found a common edge vertex for top edge
+				{
+					if (v3->x == v0n->x && v3->y == v0n->y)
+					{
+
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v3->x < v0n->x)
+						{
+							v3->z = (v0n->z + v1n->z) / 2;
+
+							//v1->z = 10;
+						}
+					}
+				}
+				//buttom check edge corner right
+				if (v3->x == v0n->x && v3->y == v0n->y) //we have found a common edge vertex for top edge
+				{
+					if (v2->x == v1n->x && v2->y == v1n->y)
+					{
+
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v2->x > v1n->x)
+						{
+							v2->z = (v0n->z + v1n->z) / 2;
+
+							//v1->z = 10;
+						}
+					}
+				}
+				//check left edge top corner
+				if (v1->x == v0n->x && v1->y == v0n->y) //we have found a common edge vertex for top edge
+				{
+					if (v2->x == v3n->x && v2->y == v3n->y)
+					{
+
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v2->y > v3n->y)
+						{
+							v2->z = (v0n->z + v3n->z) / 2;
+
+							//v1->z = 10;
+						}
+					}
+
+				}
+				//left edge buttom corner
+				if (v2->x == v3n->x && v2->y == v3n->y) //we have found a common edge vertex for top edge
+				{
+					if (v1->x == v0n->x && v1->y == v0n->y)
+					{
+
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v1->y < v0n->y)
+						{
+							v1->z = (v0n->z + v3n->z) / 2;
+
+							//v1->z = 10;
+						}
+					}
+
+				}
+				//right edge top corner
+				if (v0->x == v1n->x && v0->y == v1n->y) //we have found a common edge vertex for top edge
+				{
+					if (v3->x == v2n->x && v3->y == v2n->y)
+					{
+
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v3->y > v2n->y)
+						{
+							v3->z = (v2n->z + v1n->z) / 2;
+
+							//v1->z = 10;
+						}
+					}
+
+				}
+				if (v3->x == v2n->x && v3->y == v2n->y) //we have found a common edge vertex for top edge
+				{
+					if (v0->x == v1n->x && v0->y == v1n->y)
+					{
+
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v0->y < v1n->y)
+						{
+							v0->z = (v2n->z + v1n->z) / 2;
+
+							//v1->z = 10;
+						}
+					}
+
+				}
+			}
+			
+
+		}
+		newList.push_front(temp_q);
+	}
+	CustomQuads.clear();
+	CustomQuads = newList;
+}
 
 void display_shape(GLenum mode, Polyhedron* this_poly)
 {
+
 	if (quadsCreated == false) //dynamic list of quads
 	{
 		CreateCustomQuadList();
@@ -295,6 +632,8 @@ void display_shape(GLenum mode, Polyhedron* this_poly)
 	float colorX, colorY;
 	double L = (poly->radius * 2) / 30;
 
+	//draw polys
+	
 	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
 	{
 		Quad q = *it;
@@ -310,52 +649,36 @@ void display_shape(GLenum mode, Polyhedron* this_poly)
 			Vertex* temp_v = q.verts[j];
 			glNormal3d(q.normal.entry[0], q.normal.entry[1], q.normal.entry[2]);
 			glTexCoord2f(temp_v->x / 25 + 0.5, temp_v->y / 25 + 0.5);
-			//estimate where to get pixel height 
-			int pixX = (int)((temp_v->x + 10) * 25);
-			int pixY = (int)((temp_v->y + 10) * 25);
-			//glColor3f(0.0, 0.0, 0.0);
-			glVertex3d(temp_v->x, temp_v->y, Pixels[pixX][pixY] / 25);
+			glColor3f(1.0, 1.0, 1.0);
+			glVertex3d(temp_v->x, temp_v->y, temp_v->z);
 		}
 		glEnd();
 	}
-	//get texture data
-	glBindTexture(GL_TEXTURE_2D, texture);
-	GLubyte* pixels = new GLubyte[512 * 512 * 4];
+	//draw poly lines
 
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-	size_t r, g, b, a; // or GLubyte r, g, b, a;
-
-	size_t  x = 0;
-	size_t  y = 0; // line and column of the pixel
-	GLubyte  gray;
-	size_t elmes_per_line, row, col;
-	for (int i = 0; i < 512; i++)
+	list<Vertex*> points;
+	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
 	{
-		for (int j = 0; j < 512; j++)
-		{
-			elmes_per_line = 512 * 4; // elements per line = 256 * "RGBA"
+		Quad q = *it;
+		//glDisable(GL_LIGHTING);
 
-			row = y * elmes_per_line;
-			col = x * 4;
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glBegin(GL_LINE_STRIP);
 
-			r = pixels[row + col];
-			g = pixels[row + col + 1];
-			b = pixels[row + col + 2];
-			a = pixels[row + col + 3];
+		for (j = 0; j < 4; j++) {
 
-			gray = (GLubyte)(r * 0.2126 + g * 0.7152 + b * 0.0722);
-			Pixels[x][y] = gray;
-
-
-			//fprintf(stderr, "%d\n", gray);
-			x++;
+			Vertex* temp_v = q.verts[j];
+	
+			glNormal3d(q.normal.entry[0], q.normal.entry[1], q.normal.entry[2]);
+			glColor3f(1, 0, 0);
+		
+			points.push_front(temp_v);
+			glVertex3d(temp_v->x, temp_v->y, temp_v->z);
 		}
-		y++;
-		x = 0;
+		glEnd();
 	}
-	free(pixels);
-
 }
 
 //helper function. Linearly blends 4 points. We shouldn't needed it if data is higher resolution than poly count. It should be always
@@ -475,7 +798,7 @@ void keyboard(unsigned char key, int x, int y) {
 		break;
 
 	case '2':
-		display_mode = 2;
+		AutoSubDivision();
 		display();
 		break;
 
