@@ -340,7 +340,7 @@ void AutoSubDivision()
 		double distanceThree = sqrt(pow(v2->x - v3->x, 2) + pow(v2->y - v3->y, 2) + pow(v2->z - v3->z, 2));
 		double distanceFour = sqrt(pow(v3->x - v0->x, 2) + pow(v3->y - v0->y, 2) + pow(v3->z - v0->z, 2));
 
-		float maxDistance = 0.5f; // height var, determines if we sub
+		float maxDistance = 0.65f; // height var, determines if we sub
 
 		if (distanceOne > maxDistance || distanceTwo > maxDistance || distanceThree> maxDistance || distanceFour > maxDistance)
 		{
@@ -453,8 +453,7 @@ void EdgeStitching()
 						//if this poly is divided  than set height
 						if (v1->x > v2n->x)
 						{
-							v1->z = (v2n->z + v3n->z)*(v0->x + 2);
-							
+							v1->z = (v2n->z + v3n->z) / 2;				
 							//v1->z = 10;
 						}
 					}
