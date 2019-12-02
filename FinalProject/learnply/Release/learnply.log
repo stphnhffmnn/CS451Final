@@ -1,23 +1,25 @@
 ﻿  learnply.cpp
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(125,1): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(130,1): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(208): message : see declaration of 'fopen'
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(632,8): warning C4101: 'colorX': unreferenced local variable
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(622,15): warning C4101: 'i': unreferenced local variable
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(632,16): warning C4101: 'colorY': unreferenced local variable
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(623,10): warning C4101: 'mat_diffuse': unreferenced local variable
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(857,1): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(809,8): warning C4101: 'colorX': unreferenced local variable
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(799,15): warning C4101: 'i': unreferenced local variable
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(809,16): warning C4101: 'colorY': unreferenced local variable
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(800,10): warning C4101: 'mat_diffuse': unreferenced local variable
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1072,26): warning C4305: '-=': truncation from 'double' to 'float'
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1079,26): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1098,1): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(208): message : see declaration of 'fopen'
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(780,6): warning C4101: 'i': unreferenced local variable
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(887,1): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1003,6): warning C4101: 'i': unreferenced local variable
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1128,1): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(208): message : see declaration of 'fopen'
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1072,1): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1313,1): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h(1774): message : see declaration of 'sprintf'
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1622,16): warning C4018: '<': signed/unsigned mismatch
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1673,16): warning C4018: '<': signed/unsigned mismatch
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1698,16): warning C4018: '<': signed/unsigned mismatch
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1707,17): warning C4018: '<': signed/unsigned mismatch
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1775,50): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1776,50): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1810,26): warning C4305: '=': truncation from 'double' to 'GLfloat'
-C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1842,16): warning C4018: '<': signed/unsigned mismatch
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1863,16): warning C4018: '<': signed/unsigned mismatch
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1914,16): warning C4018: '<': signed/unsigned mismatch
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1939,16): warning C4018: '<': signed/unsigned mismatch
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(1948,17): warning C4018: '<': signed/unsigned mismatch
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(2016,50): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(2017,50): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(2051,26): warning C4305: '=': truncation from 'double' to 'GLfloat'
+C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\learnply.cpp(2083,16): warning C4018: '<': signed/unsigned mismatch
   learnply.vcxproj -> C:\Users\stphn\Desktop\Final\CS451Final\FinalProject\learnply\.\Release\learnply.exe

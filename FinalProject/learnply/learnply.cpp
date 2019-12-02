@@ -58,6 +58,7 @@ Polyhedron *poly;
 void init(void);
 void keyboard(unsigned char key, int x, int y);
 void motion(int x, int y);
+void passiveMotion(int x, int y);
 void display(void);
 void mouse(int button, int state, int x, int y);
 void display_shape(GLenum mode, Polyhedron *poly);
@@ -72,6 +73,7 @@ double blendFourPoints(double x, double y, double x1, double y1, double x2, doub
 void MouseToMapRaycast(); //take mouse position and select which polygon it is hovering over. Make that poly a color to show it
 void UserSelectedSubdivision(); // takes the selected poly with the mouse and subdivides
 void UserSelectedReduction(); //Takes user selected poly and undoes current level of division
+void UserSubDivision(); //sub divide map using user selected location
 void AutoSubDivision(); //automatically sub divide map using height differences between points
 void EdgeStitching();
 void OrderVertexClockWise(Quad *q);
@@ -102,7 +104,10 @@ const static int ContourLayerCount = 10;
 
 const char * dataset = "CorvallisBMP.bmp";
 GLuint texture;
-list<Quad> CustomQuads;
+list<Quad*> CustomQuads;
+int quadIdx = 0;
+int selQuad = -1;
+float selRad = 1.0;
 double Pixels[513][513];
 
 
@@ -166,6 +171,7 @@ int errorFalloffX = 15;
 //create list of quads. Allows us to push, pop, and delete indexes dynamically
 void CreateCustomQuadList()
 {
+    CustomQuads.clear();
 	//set up mapdata array pixel value
 	//get texture data
 	glBindTexture(GL_TEXTURE_2D, texture);
@@ -207,7 +213,7 @@ void CreateCustomQuadList()
 
 	//assign map y values
 	for (int i = 0; i < poly->nquads; i++) {
-
+        quadIdx++;
 		Quad* temp_q = poly->qlist[i];
 		for (int k = 0; k < 4; k++)
 		{
@@ -220,7 +226,7 @@ void CreateCustomQuadList()
 			int pixY = (int)((v->y + 10) * 25);
 			v->z = Pixels[pixX][pixY] / 25;
 		}
-		CustomQuads.push_front(*temp_q);
+		CustomQuads.push_front(temp_q);
 
 	}
 }
@@ -228,15 +234,15 @@ void CreateCustomQuadList()
 //subdivides whole map by one step
 void LinearSubDivision()
 {
-	list<Quad> newList;
-	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+	list<Quad*> newList;
+	for (list<Quad*>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
 	{
 
-		Quad temp_q = *it;
-		Vertex* v0 = temp_q.verts[0];
-		Vertex* v1 = temp_q.verts[1];
-		Vertex* v2 = temp_q.verts[2];
-		Vertex* v3 = temp_q.verts[3];
+		Quad* temp_q = *it;
+		Vertex* v0 = temp_q->verts[0];
+		Vertex* v1 = temp_q->verts[1];
+		Vertex* v2 = temp_q->verts[2];
+		Vertex* v3 = temp_q->verts[3];
 
 		Vertex* v[4] = { v0,v1,v2,v3 };
 		double midX = (v0->x + v2->x) / 2;
@@ -256,7 +262,7 @@ void LinearSubDivision()
 			newQuads[i]->verts[2] = new Vertex(midX, midY, z);
 			z = blendFourPoints(v[i]->x, midY, v0->x, v0->y, v2->x, v2->y, v0->z, v1->z, v3->z, v2->z);
 			newQuads[i]->verts[3] = new Vertex(v[i]->x, midY, z);
-			newList.push_front(*newQuads[i]);
+			newList.push_front(newQuads[i]);
 
 		}
 	}
@@ -310,6 +316,105 @@ void UserSelectedReduction()
 		//Revualate DSS
 }
 
+void UserSubDivision()
+{
+    //for each polygon, we can take the height difference between each point.
+    //if the height is great than some value X, we can subdivide.
+        //if the height is still greater for the new values, we will repeat.
+
+    //this function can be a recursive method or implemented using a list with while(!empty) were we just keeping adding new polys when height is greater, and removing when not.
+
+    list<Quad*> newList;
+    for (list<Quad*>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+    {
+
+        Quad* temp_q = *it;
+        Vertex* v0 = temp_q->verts[0];
+        Vertex* v1 = temp_q->verts[1];
+        Vertex* v2 = temp_q->verts[2];
+        Vertex* v3 = temp_q->verts[3];
+        Vertex* v[4] = { v0,v1,v2,v3 };
+
+        double midX = (v0->x + v2->x) / 2;
+        double midY = (v0->y + v2->y) / 2;
+        int pixX = (int)((midX + 10) * 25);
+        int pixY = (int)((midY + 10) * 25);
+        double midZ = Pixels[pixX][pixY] / 25;
+        double distanceOne = sqrt(pow(v0->x - v1->x, 2) + pow(v0->y - v1->y, 2) + pow(v0->z - v1->z, 2));
+        double distanceTwo = sqrt(pow(v1->x - v2->x, 2) + pow(v1->y - v2->y, 2) + pow(v1->z - v2->z, 2));
+        double distanceThree = sqrt(pow(v2->x - v3->x, 2) + pow(v2->y - v3->y, 2) + pow(v2->z - v3->z, 2));
+        double distanceFour = sqrt(pow(v3->x - v0->x, 2) + pow(v3->y - v0->y, 2) + pow(v3->z - v0->z, 2));
+
+        float maxDistance = 0.65f; // height var, determines if we sub
+
+        if (temp_q->nearSel)
+        {
+            Quad* newQuads[4];
+            for (int i = 0; i < 4; i++)
+            {
+                newQuads[i] = new Quad();
+                newQuads[i]->index = quadIdx;
+                quadIdx++;
+                newQuads[i]->nverts = 4;
+                //this needs to be top right vertex
+                pixX = (int)((max(v[i]->x, midX) + 10) * 25);
+                //for zero data issue
+                if (pixX <= errorFalloffX)
+                {
+                    pixX += errorFalloffX;
+                }
+                pixY = (int)((max(v[i]->y, midY) + 10) * 25);
+                midZ = Pixels[pixX][pixY] / 25;
+                newQuads[i]->verts[0] = new Vertex(max(v[i]->x, midX), max(v[i]->y, midY), midZ);
+                //top left
+                pixX = (int)((min(v[i]->x, midX) + 10) * 25);
+                //for zero data issue
+                if (pixX <= errorFalloffX)
+                {
+                    pixX += errorFalloffX;
+                }
+                pixY = (int)((max(v[i]->y, midY) + 10) * 25);
+                midZ = Pixels[pixX][pixY] / 25;
+                newQuads[i]->verts[1] = new Vertex(min(v[i]->x, midX), max(v[i]->y, midY), midZ);
+                //buttom left
+                pixX = (int)((min(v[i]->x, midX) + 10) * 25);
+                //for zero data issue
+                if (pixX <= errorFalloffX)
+                {
+                    pixX += errorFalloffX;
+                }
+                pixY = (int)((min(v[i]->y, midY) + 10) * 25);
+                midZ = Pixels[pixX][pixY] / 25;
+                newQuads[i]->verts[2] = new Vertex(min(v[i]->x, midX), min(v[i]->y, midY), midZ);
+                //bottton right
+                pixX = (int)((max(v[i]->x, midX) + 10) * 25);
+                //for zero data issue
+                if (pixX <= errorFalloffX)
+                {
+                    pixX += errorFalloffX;
+                }
+                pixY = (int)((min(v[i]->y, midY) + 10) * 25);
+                midZ = Pixels[pixX][pixY] / 25;
+                newQuads[i]->verts[3] = new Vertex(max(v[i]->x, midX), min(v[i]->y, midY), midZ);
+               
+                newList.push_front(newQuads[i]);
+
+            }
+        }
+        else // push non subdivided poly
+        {
+            newList.push_front(temp_q);
+        }
+
+
+    }
+    CustomQuads.clear();
+    CustomQuads = newList;
+    EdgeStitching();
+	EdgeStitching();
+}
+
+
 //automatically sub divide map using height differences between points
 void AutoSubDivision()
 {
@@ -319,15 +424,15 @@ void AutoSubDivision()
 
 	//this function can be a recursive method or implemented using a list with while(!empty) were we just keeping adding new polys when height is greater, and removing when not.
 
-	list<Quad> newList;
-	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+	list<Quad*> newList;
+	for (list<Quad*>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
 	{
 
-		Quad temp_q = *it;
-		Vertex* v0 = temp_q.verts[0];
-		Vertex* v1 = temp_q.verts[1];
-		Vertex* v2 = temp_q.verts[2];
-		Vertex* v3 = temp_q.verts[3];
+		Quad* temp_q = *it;
+		Vertex* v0 = temp_q->verts[0];
+		Vertex* v1 = temp_q->verts[1];
+		Vertex* v2 = temp_q->verts[2];
+		Vertex* v3 = temp_q->verts[3];
 		Vertex* v[4] = { v0,v1,v2,v3 };
 
 		double midX = (v0->x + v2->x) / 2;
@@ -348,6 +453,8 @@ void AutoSubDivision()
 			for (int i = 0; i < 4; i++)
 			{
 				newQuads[i] = new Quad();
+                newQuads[i]->index = quadIdx;
+                quadIdx++;
 				newQuads[i]->nverts = 4;
 				//this needs to be top right vertex
 				pixX = (int)((max(v[i]->x, midX)+10) * 25);
@@ -390,7 +497,7 @@ void AutoSubDivision()
 				midZ = Pixels[pixX][pixY] / 25;
 				newQuads[i]->verts[3] = new Vertex(max(v[i]->x, midX), min(v[i]->y, midY), midZ);
 				//OrderVertexClockWise(newQuads[i]);
-				newList.push_front(*newQuads[i]);
+				newList.push_front(newQuads[i]);
 
 			}
 		}
@@ -404,22 +511,23 @@ void AutoSubDivision()
 	CustomQuads.clear();
 	CustomQuads = newList;
 	EdgeStitching();
+	EdgeStitching();
 }
 
 void EdgeStitching()
 {
-	list<Quad> newList;
-	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+	list<Quad*> newList;
+	for (list<Quad*>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
 	{
-		Quad temp_q = *it;
+		Quad* temp_q = *it;
 		Quad edge0Edit;
 		Quad edge1Edit;
 		Quad edge2Edit;
 		Quad edge3Edit;
-		Vertex* v0 = temp_q.verts[0]; 
-		Vertex* v1 = temp_q.verts[1]; 
-		Vertex* v2 = temp_q.verts[2];
-		Vertex* v3 = temp_q.verts[3];
+		Vertex* v0 = temp_q->verts[0]; 
+		Vertex* v1 = temp_q->verts[1]; 
+		Vertex* v2 = temp_q->verts[2];
+		Vertex* v3 = temp_q->verts[3];
 		Vertex* v[4] = { v0,v1,v2,v3 };
 		
 		bool v0EdgeFound = false; //v0 v1 --> new v3 v2  top edge to bottom
@@ -427,24 +535,31 @@ void EdgeStitching()
 		bool v2EdgeFound = false; //v2 v3 --> new v0 v1  buttom to top
 		bool v3EdgeFound = false; //v3 v0 --> new v1 v2  right to left
 
+
 		//check if each edge has a matching vertex in another polygon.
-		for (list<Quad>::iterator it2 = CustomQuads.begin(); it2 != CustomQuads.end(); it2++)
+		for (list<Quad*>::iterator it2 = CustomQuads.begin(); it2 != CustomQuads.end(); it2++)
 		{
-			Quad temp_q2 = *it2;
+			Quad* temp_q2 = *it2;
 			if (it != it2)
 			{
 
 				
-				Vertex* v0n = temp_q2.verts[0];
-				Vertex* v1n = temp_q2.verts[1];
-				Vertex* v2n = temp_q2.verts[2];
-				Vertex* v3n = temp_q2.verts[3];
+				Vertex* v0n = temp_q2->verts[0];
+				Vertex* v1n = temp_q2->verts[1];
+				Vertex* v2n = temp_q2->verts[2];
+				Vertex* v3n = temp_q2->verts[3];
 				//check if top edge max x y corner right
 				if (v0->x == v3n->x && v0->y == v3n->y) //we have found a common edge vertex for top edge
 				{
+\
 					if (v1->x == v2n->x && v1->y == v2n->y)
 					{
-				
+						//DOUBLE CHECK Z 
+						//v0->z = v3n->z;
+						//v1->z = v2n->z;
+						v3n->z = v0->z;
+						v2n->z = v1->z;
+
 						//perfect we dont need too do anything
 						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
 					}
@@ -456,73 +571,50 @@ void EdgeStitching()
 							v1->z = (v2n->z + v3n->z) / 2;				
 							//v1->z = 10;
 						}
+						else
+						{
+							//make sure we favor the data in the larger polygon
+							v0->z = v3n->z;
+						}
 					}
 				}
 				if (v1->x == v2n->x && v1->y == v2n->y) //we have found a common edge vertex for top edge
 				{
 					if (v0->x == v3n->x && v0->y == v3n->y)
 					{
-
+						//v1->z = v2n->z;
+						//v0->z = v3n->z;
+						v3n->z = v0->z;
+						v2n->z = v1->z;
 						//perfect we dont need too do anything
 						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
 					}
 					else
 					{
-						//if this poly is divided  than set height
+						//if this poly is divided more  than set height
 						if (v0->x < v3n->x)
 						{
 							v0->z = (v2n->z + v3n->z) / 2;
 
 							//v1->z = 10;
 						}
-					}
-				}
-				//buttom check edge corner left
-				if (v2->x == v1n->x && v2->y == v1n->y) //we have found a common edge vertex for top edge
-				{
-					if (v3->x == v0n->x && v3->y == v0n->y)
-					{
-
-						//perfect we dont need too do anything
-						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
-					}
-					else
-					{
-						//if this poly is divided  than set height
-						if (v3->x < v0n->x)
+						else
 						{
-							v3->z = (v0n->z + v1n->z) / 2;
-
-							//v1->z = 10;
+							//make sure we favor the data in the larger polygon
+							v1->z = v2n->z;
 						}
 					}
 				}
-				//buttom check edge corner right
-				if (v3->x == v0n->x && v3->y == v0n->y) //we have found a common edge vertex for top edge
-				{
-					if (v2->x == v1n->x && v2->y == v1n->y)
-					{
-
-						//perfect we dont need too do anything
-						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
-					}
-					else
-					{
-						//if this poly is divided  than set height
-						if (v2->x > v1n->x)
-						{
-							v2->z = (v0n->z + v1n->z) / 2;
-
-							//v1->z = 10;
-						}
-					}
-				}
+				
 				//check left edge top corner
 				if (v1->x == v0n->x && v1->y == v0n->y) //we have found a common edge vertex for top edge
 				{
 					if (v2->x == v3n->x && v2->y == v3n->y)
 					{
-
+						//v1->z = v0n->z;
+						//v2->z = v3n->z;
+						v0n->z = v1->z;
+						v3n->z = v2->z;
 						//perfect we dont need too do anything
 						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
 					}
@@ -535,6 +627,11 @@ void EdgeStitching()
 
 							//v1->z = 10;
 						}
+						else
+						{
+							//make sure we favor the data in the larger polygon
+							v1->z = v0n->z;
+						}
 					}
 
 				}
@@ -543,7 +640,10 @@ void EdgeStitching()
 				{
 					if (v1->x == v0n->x && v1->y == v0n->y)
 					{
-
+						//v2->z = v3n->z;
+						//v1->z = v0n->z;
+						v3n->z = v2->z;
+						v0n->z = v1->z;
 						//perfect we dont need too do anything
 						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
 					}
@@ -556,15 +656,79 @@ void EdgeStitching()
 
 							//v1->z = 10;
 						}
+						else
+						{
+							//make sure we favor the data in the larger polygon
+							v2->z = v3n->z;
+						}
 					}
 
+				}
+				//buttom check edge corner left
+				if (v2->x == v1n->x && v2->y == v1n->y) //we have found a common edge vertex for top edge
+				{
+					if (v3->x == v0n->x && v3->y == v0n->y)
+					{
+						//v2->z = v1n->z;
+						//v3->z = v0n->z;
+						v1n->z = v2->z;
+						v0n->z = v3->z;
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v3->x < v0n->x)
+						{
+							v3->z = (v0n->z + v1n->z) / 2;
+
+							//v1->z = 10;
+						}
+						else
+						{
+							//make sure we favor the data in the larger polygon
+							v2->z = v1n->z;
+						}
+					}
+				}
+				//buttom check edge corner right
+				if (v3->x == v0n->x && v3->y == v0n->y) //we have found a common edge vertex for top edge
+				{
+					if (v2->x == v1n->x && v2->y == v1n->y)
+					{
+						//v3->z = v0n->z;
+						//v2->z = v1n->z;
+						v0n->z = v3->z;
+						v1n->z = v2->z;
+						//perfect we dont need too do anything
+						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
+					}
+					else
+					{
+						//if this poly is divided  than set height
+						if (v2->x > v1n->x)
+						{
+							v2->z = (v0n->z + v1n->z) / 2;
+
+							//v1->z = 10;
+						}
+						else
+						{
+							//make sure we favor the data in the larger polygon
+							v3->z = v0n->z;
+						}
+					}
 				}
 				//right edge top corner
 				if (v0->x == v1n->x && v0->y == v1n->y) //we have found a common edge vertex for top edge
 				{
 					if (v3->x == v2n->x && v3->y == v2n->y)
 					{
-
+						//v0->z = v1n->z;
+						//v3->z = v2n->z;
+						v1n->z = v0->z;
+						v2n->z = v3->z;
 						//perfect we dont need too do anything
 						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
 					}
@@ -577,14 +741,23 @@ void EdgeStitching()
 
 							//v1->z = 10;
 						}
+						else
+						{
+							//make sure we favor the data in the larger polygon
+							v0->z = v1n->z;
+						}
 					}
 
 				}
+				//right edge buttom  corner
 				if (v3->x == v2n->x && v3->y == v2n->y) //we have found a common edge vertex for top edge
 				{
 					if (v0->x == v1n->x && v0->y == v1n->y)
 					{
-
+						//v3->z = v2n->z;
+						//v0->z = v1n->z;
+						v1n->z = v0->z;
+						v2n->z = v3->z;
 						//perfect we dont need too do anything
 						//fprintf(stdout, "Top matching edge found at (%f, %f), (%f, %f) \n", v0->x, v0->y, v1->x, v1->y);
 					}
@@ -596,6 +769,11 @@ void EdgeStitching()
 							v0->z = (v2n->z + v1n->z) / 2;
 
 							//v1->z = 10;
+						}
+						else
+						{
+							//make sure we favor the data in the larger polygon
+							v3->z = v2n->z;
 						}
 					}
 
@@ -633,20 +811,31 @@ void display_shape(GLenum mode, Polyhedron* this_poly)
 
 	//draw polys
 	
-	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+	for (list<Quad*>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
 	{
-		Quad q = *it;
+		Quad* q = *it;
 		//glDisable(GL_LIGHTING);
 
+        if (mode == GL_SELECT) {
+            glLoadName(q->index + 1);
+        }
+
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glBindTexture(GL_TEXTURE_2D, texture);
+        if (q->nearSel) { //q.index == selQuad) {
+            printf("I am here\n");
+            glBindTexture(GL_TEXTURE_2D, NULL);
+            glColor3f(0, 0, 1);
+        }
+        else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glBindTexture(GL_TEXTURE_2D, texture);
+        }
 		glBegin(GL_POLYGON);
 
 		for (j = 0; j < 4; j++) {
 
-			Vertex* temp_v = q.verts[j];
-			glNormal3d(q.normal.entry[0], q.normal.entry[1], q.normal.entry[2]);
+			Vertex* temp_v = q->verts[j];
+			glNormal3d(q->normal.entry[0], q->normal.entry[1], q->normal.entry[2]);
 			glTexCoord2f(temp_v->x / 25 + 0.5, temp_v->y / 25 + 0.5);
 			glColor3f(1.0, 1.0, 1.0);
 			glVertex3d(temp_v->x, temp_v->y, temp_v->z);
@@ -656,9 +845,9 @@ void display_shape(GLenum mode, Polyhedron* this_poly)
 	//draw poly lines
 
 	list<Vertex*> points;
-	for (list<Quad>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
+	for (list<Quad*>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++)
 	{
-		Quad q = *it;
+		Quad* q = *it;
 		//glDisable(GL_LIGHTING);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -668,9 +857,9 @@ void display_shape(GLenum mode, Polyhedron* this_poly)
 
 		for (j = 0; j < 4; j++) {
 
-			Vertex* temp_v = q.verts[j];
+			Vertex* temp_v = q->verts[j];
 	
-			glNormal3d(q.normal.entry[0], q.normal.entry[1], q.normal.entry[2]);
+			glNormal3d(q->normal.entry[0], q->normal.entry[1], q->normal.entry[2]);
 			glColor3f(1, 0, 0);
 		
 			points.push_front(temp_v);
@@ -741,7 +930,7 @@ void mouse(int button, int state, int x, int y) {
 		}
 	}
 	else if (button == GLUT_MIDDLE_BUTTON) {
-		if (state == GLUT_DOWN) {  // build up the selection feedback mode
+		if (state == GLUT_UP) {  // build up the selection feedback mode
 
 			GLuint selectBuf[win_width];
 			GLint hits;
@@ -769,7 +958,42 @@ void mouse(int button, int state, int x, int y) {
 			glFlush();
 
 			hits = glRenderMode(GL_RENDER);
-			poly->seed = processHits(hits, selectBuf);
+			selQuad = processHits(hits, selectBuf);
+
+            float centX = 0;
+            float centY = 0;
+            if (selQuad != -1) {
+                for (list<Quad*>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++) {
+                    Quad* q = *it;
+                    if (q->index == selQuad) {
+                        for (int i = 0; i < 4; i++) {
+                            centX += q->verts[i]->x;
+                            centY += q->verts[i]->y;
+                        }
+                        centX /= 4.0;
+                        centY /= 4.0;
+                        printf("x:%f, y:%f\n", centX, centY);
+                        break;
+                    }
+                }
+                for (list<Quad*>::iterator it = CustomQuads.begin(); it != CustomQuads.end(); it++) {
+                    Quad* q = *it;
+                    q->nearSel = false;
+                    if (q->index == selQuad) {
+                        printf("You Are Here\n");
+                        q->nearSel = true;
+                    }
+                    for (int i = 0; i < 4; i++) {
+                        if (sqrt(abs(q->verts[i]->x - centX) * abs(q->verts[i]->x - centX) + abs(q->verts[i]->y - centY) * abs(q->verts[i]->y - centY)) < selRad) {
+                            q->nearSel = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            UserSubDivision();
+
 			display();
 		}
 	}
@@ -843,6 +1067,24 @@ void keyboard(unsigned char key, int x, int y) {
 		useGFunction = true;
 		display();
 		break;
+    case 'o':
+        if (selRad > 0.1) {
+            selRad -= 0.2;
+            printf("selRad:%f\n", selRad);
+        }
+        display();
+        break;
+    case 'p':
+        if (selRad < 4.0) {
+            selRad += 0.2;
+            printf("selRad:%f\n", selRad);
+        }
+        display();
+        break;
+    case 'm':
+        quadsCreated = false;
+        display();
+        break;
 	case 32: //space, load file
 		if (fileIndex == 11)
 		{

@@ -14,14 +14,14 @@ Eugene Zhang 2005
 #include "icVector.H"
 
 const double EPS = 1.0e-6;
-const double PI=3.1415926535898;
+const double PI = 3.1415926535898;
 
 /* forward declarations */
 class Quad;
 
 class Vertex {
 public:
-	double x,y,z;
+	double x, y, z;
 	double vx, vy, vz;
 	double scalar = 0;
 	double f_x = 0;
@@ -34,11 +34,11 @@ public:
 	int index;
 
 	int nquads;
-	Quad **quads;
+	Quad** quads;
 	int max_quads;
 
 	icVector3 normal;
-	void *other_props;
+	void* other_props;
 public:
 	Vertex(double xx, double yy, double zz) { x = xx; y = yy; z = zz; }
 };
@@ -46,9 +46,9 @@ public:
 class Edge {
 public:
 	int index;
-	Vertex *verts[2];
+	Vertex* verts[2];
 	int nquads;
-	Quad **quads;
+	Quad** quads;
 	double length;
 };
 
@@ -56,14 +56,16 @@ class Quad {
 public:
 	int index;
 	int nverts;
-	Vertex *verts[4];
-	Edge *edges[4];
+	Vertex* verts[4];
+	Edge* edges[4];
 
 	double angle[4];
 	float area;
 
+	bool nearSel = false;
+
 	icVector3 normal;
-	void *other_props;
+	void* other_props;
 };
 
 
@@ -72,15 +74,15 @@ public:
 
 	int index;
 
-	Quad **qlist;  /* list of quads */
+	Quad** qlist;  /* list of quads */
 	int nquads;
 	int max_quads;
 
-	Vertex **vlist;    /* list of vertices */
+	Vertex** vlist;    /* list of vertices */
 	int nverts;
 	int max_verts;
 
-	Edge **elist;      /* list of edges */
+	Edge** elist;      /* list of edges */
 	int nedges;
 	int max_edges;
 
@@ -90,26 +92,26 @@ public:
 
 	int seed;
 
-	PlyOtherProp *vert_other,*face_other;
+	PlyOtherProp* vert_other, * face_other;
 
 	void average_normals();
 	void s_minmax();
 	void g_minmax();
 
-	void create_edge(Vertex *, Vertex *);
+	void create_edge(Vertex*, Vertex*);
 	void create_edges();
-	int face_to_vertex_ref(Quad *, Vertex *);
-	void order_vertex_to_quad_ptrs(Vertex *);
+	int face_to_vertex_ref(Quad*, Vertex*);
+	void order_vertex_to_quad_ptrs(Vertex*);
 	void vertex_to_quad_ptrs();
-	Quad *find_common_edge(Quad *, Vertex *, Vertex *);
-	Quad *other_quad(Edge *, Quad *);
+	Quad* find_common_edge(Quad*, Vertex*, Vertex*);
+	Quad* other_quad(Edge*, Quad*);
 	void calc_bounding_sphere();
 	void calc_face_normals_and_area();
 	void calc_edge_length();
 
 	Polyhedron();
-	Polyhedron(FILE *);
-	void write_file(FILE *);
+	Polyhedron(FILE*);
+	void write_file(FILE*);
 
 	void create_pointers();
 
